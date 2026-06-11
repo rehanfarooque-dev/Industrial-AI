@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Portfolio Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui"] },
+          colors: {
+            ink:       "#0b1f3a",
+            inkSoft:   "#1f3457",
+            navy:      "#16345f",
+            navyDeep:  "#0c2348",
+            slateBg:   "#f4f6f9",
+            cardLine:  "#e5eaf1",
+            brand:     "#1f4e9b",
+            brand2:    "#3f86d6",
+            brand3:    "#7fb6e8",
+            accent:    "#d8581f",
+            accentSoft:"#f4b18d",
+            warn:      "#e7a93a",
+            ok:        "#5e9f55",
+            okSoft:    "#a7c79d",
+          },
+          boxShadow: {
+            card: "0 1px 2px rgba(15,30,60,.04), 0 8px 24px rgba(15,30,60,.06)",
+            soft: "0 1px 2px rgba(15,30,60,.04), 0 4px 14px rgba(15,30,60,.05)",
+          },
+          keyframes: {
+            fadeUp: {
+              "0%": { opacity: 0, transform: "translateY(14px)" },
+              "100%": { opacity: 1, transform: "translateY(0)" }
+            },
+            pop: {
+              "0%": { opacity: 0, transform: "scale(.97)" },
+              "100%": { opacity: 1, transform: "scale(1)" }
+            },
+            slideIn: {
+              "0%": { opacity: 0, transform: "translateX(18px)" },
+              "100%": { opacity: 1, transform: "translateX(0)" }
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-slateBg text-ink font-sans antialiased">
+  <!-- Mobile top bar -->
+  <div class="md:hidden sticky top-0 z-40 bg-white/85 backdrop-blur border-b border-cardLine">
+    <div class="flex items-center justify-between gap-3 px-4 py-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand to-navyDeep grid place-items-center text-white text-[12px] font-bold shrink-0">AI</div>
+        <div class="min-w-0">
+          <div class="text-[13px] font-bold leading-tight truncate">Industrial AI</div>
+          <div id="mobile-current" class="text-[10.5px] text-ink/55 truncate">Module</div>
+        </div>
+      </div>
+      <button id="menu-toggle" aria-label="Open modules menu" aria-expanded="false"
+        class="w-10 h-10 rounded-xl border border-cardLine bg-white grid place-items-center text-ink hover:bg-slateBg transition">
+        <svg id="icon-menu" viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="4" y1="7" x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+        <svg id="icon-close" viewBox="0 0 24 24" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="6" y1="6" x2="18" y2="18"/>
+          <line x1="18" y1="6" x2="6" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Backdrop for mobile drawer -->
+  <div id="sidebar-backdrop" class="md:hidden fixed inset-0 z-40 bg-ink/40 backdrop-blur-[2px] opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+  <div id="app" class="min-h-screen flex">
+    <!-- Main content area (left) -->
+    <main class="flex-1 min-w-0">
+      <header class="px-5 sm:px-8 lg:px-10 pt-6 sm:pt-8 lg:pt-10 pb-5 sm:pb-6">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6">
+          <div>
+            <div class="text-[11px] sm:text-xs uppercase tracking-[0.18em] text-brand/70 font-semibold">AI Portfolio</div>
+            <h1 id="module-title" class="mt-1 text-[28px] sm:text-[34px] lg:text-[40px] leading-[1.08] font-extrabold text-ink"></h1>
+            <p id="module-subtitle" class="mt-2 text-[13px] sm:text-sm text-ink/55 max-w-2xl"></p>
+          </div>
+          <div class="hidden md:flex items-center gap-3">
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-cardLine text-xs text-ink/70 shadow-soft">
+              <span class="w-1.5 h-1.5 rounded-full bg-ok"></span> Live demo
+            </div>
+            <button class="px-3 py-1.5 rounded-full bg-ink text-white text-xs font-semibold hover:bg-navyDeep transition">Request walkthrough</button>
+          </div>
+        </div>
+      </header>
+
+      <section id="module-view" class="px-5 sm:px-8 lg:px-10 pb-10 sm:pb-14"></section>
+    </main>
+
+    <!-- Right sidebar (drawer on mobile) -->
+    <aside id="sidebar"
+      class="sidebar-panel fixed md:sticky top-0 right-0 z-50 h-screen w-[280px] md:w-[260px] shrink-0
+             border-l border-cardLine bg-white/95 md:bg-white/70 backdrop-blur-sm
+             flex flex-col translate-x-full md:translate-x-0
+             transition-transform duration-300 ease-out shadow-2xl md:shadow-none">
+      <div class="px-6 pt-6 md:pt-8 pb-5 md:pb-6 border-b border-cardLine flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand to-navyDeep grid place-items-center text-white font-bold">AI</div>
+          <div>
+            <div class="text-sm font-bold leading-tight">Industrial AI</div>
+            <div class="text-[11px] text-ink/55">Portfolio Console</div>
+          </div>
+        </div>
+        <button id="sidebar-close" aria-label="Close menu"
+          class="md:hidden w-8 h-8 rounded-lg hover:bg-slateBg grid place-items-center text-ink/60">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav id="module-nav" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto"></nav>
+
+      <div class="p-4 m-3 rounded-2xl bg-gradient-to-br from-navy to-navyDeep text-white">
+        <div class="text-[11px] uppercase tracking-wider text-white/60 font-semibold">AI Portfolio</div>
+        <div class="mt-1 text-sm font-semibold">Overview &amp; Roadmap</div>
+        <button id="overview-btn" class="mt-3 w-full text-xs font-medium bg-white/10 hover:bg-white/20 transition rounded-lg py-2">Open overview</button>
+      </div>
+    </aside>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

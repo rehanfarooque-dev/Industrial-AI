@@ -1,0 +1,27 @@
+# Generated SQLite dataset (recreated on startup by seed.py / server.py)
+dashboard.db
+dashboard.db-journal
+dashboard.db-wal
+dashboard.db-shm
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Backups / scratch
+*.bak
+"index 1.html"
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Node (only if you ever add a build step)
+node_modules/
