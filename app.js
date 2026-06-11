@@ -264,27 +264,38 @@
     <div class="grid-modules">
       ${card({
         title: "Personalized Journeys",
-        info: "How prospects move from Awareness to Loyalty. Each stage shows the percentage retained from the previous one; AI-personalised recommendations lift conversion at every step.",
-        body: `
-          <svg viewBox="0 0 320 160" class="w-full h-[170px] funnel">
-            <defs>
-              <linearGradient id="fg1" x1="0" x2="1"><stop offset="0" stop-color="#7fb6e8"/><stop offset="1" stop-color="#3f86d6"/></linearGradient>
-              <linearGradient id="fg2" x1="0" x2="1"><stop offset="0" stop-color="#5fa1de"/><stop offset="1" stop-color="#2a6bc2"/></linearGradient>
-              <linearGradient id="fg3" x1="0" x2="1"><stop offset="0" stop-color="#3f86d6"/><stop offset="1" stop-color="#1f4e9b"/></linearGradient>
-              <linearGradient id="fg4" x1="0" x2="1"><stop offset="0" stop-color="#2a6bc2"/><stop offset="1" stop-color="#16345f"/></linearGradient>
-            </defs>
-            <polygon class="funnel-stage" fill="url(#fg1)" points="10,30 90,30 80,130 20,130"/>
-            <polygon class="funnel-stage" fill="url(#fg2)" points="92,40 162,40 150,120 100,120"/>
-            <polygon class="funnel-stage" fill="url(#fg3)" points="164,50 224,50 212,110 174,110"/>
-            <polygon class="funnel-stage" fill="url(#fg4)" points="226,60 282,60 270,100 236,100"/>
-            <g font-size="9" fill="${cInk()}" font-weight="600" text-anchor="middle">
-              ${data.funnel.map((f, i) => {
-                const x = [50, 125, 194, 254][i];
-                return `<text x="${x}" y="148">${f.stage}</text>
-                        <text x="${x}" y="120" font-size="10" fill="#1f4e9b" font-weight="700">${f.pct}%</text>`;
+        info: "How prospects move from Awareness to Loyalty. Bar width = how many leads remain; the badge between stages is the conversion rate. Hover any stage for the full breakdown.",
+        body: (() => {
+          const grads = [["#9cc8f2", "#5fa1de"], ["#7fb6e8", "#3f86d6"],
+                         ["#5fa1de", "#2a6bc2"], ["#3f86d6", "#16345f"]];
+          const F = data.funnel;
+          const maxW = 184, cx = 102, h = 38, gap = 3;
+          const H = F.length * h + (F.length - 1) * gap;
+          return `
+          <div class="text-[10.5px] text-ink/45 mb-2">${F[0].count.toLocaleString()} leads enter at Awareness. Hover a stage for counts and drop-off.</div>
+          <div id="funnel" class="relative">
+            <div id="funnel-tip" class="map-tip"></div>
+            <svg viewBox="0 0 320 ${H}" class="w-full" style="max-height:200px">
+              <defs>
+                ${F.map((f, i) => `<linearGradient id="fg${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${grads[i][0]}"/><stop offset="1" stop-color="${grads[i][1]}"/></linearGradient>`).join("")}
+              </defs>
+              ${F.map((f, i) => {
+                const topW = Math.max(20, f.pct / 100 * maxW);
+                const botPct = i < F.length - 1 ? F[i + 1].pct : f.pct * 0.5;
+                const botW = Math.max(14, botPct / 100 * maxW);
+                const y = i * (h + gap);
+                const pts = `${cx - topW / 2},${y} ${cx + topW / 2},${y} ${cx + botW / 2},${y + h} ${cx - botW / 2},${y + h}`;
+                return `
+                <g class="funnel-seg" data-fi="${i}" style="cursor:default">
+                  <polygon points="${pts}" fill="url(#fg${i})" class="funnel-poly" style="animation-delay:${i * 0.08}s"/>
+                  <text x="${cx}" y="${y + h / 2 + 4}" text-anchor="middle" fill="#fff" font-size="11.5" font-weight="800">${f.pct}%</text>
+                  <text x="210" y="${y + h / 2 - 2}" fill="${cInk()}" font-size="12" font-weight="700">${f.stage}</text>
+                  <text x="210" y="${y + h / 2 + 12}" fill="${cInk()}" font-size="9.5" opacity="0.6">${f.count.toLocaleString()} leads${i > 0 ? ` · ${f.conv}% conv` : ""}</text>
+                </g>`;
               }).join("")}
-            </g>
-          </svg>`,
+            </svg>
+          </div>`;
+        })(),
         caption: "Personalized product recommendations improving conversion and loyalty."
       })}
 
@@ -366,6 +377,37 @@
 
   CHART_INIT.revenue = (data) => {
     const dark = "#1f4e9b", lightPts = "#7fb6e8";
+
+    // Personalized Journeys funnel: interactive hover tooltips
+    const funnelEl = document.getElementById("funnel");
+    const funnelTip = document.getElementById("funnel-tip");
+    if (funnelEl && funnelTip) {
+      const F = data.funnel;
+      funnelEl.querySelectorAll(".funnel-seg[data-fi]").forEach((row) => {
+        const i = parseInt(row.dataset.fi, 10);
+        const f = F[i];
+        row.addEventListener("mouseenter", () => {
+          const prev = i > 0 ? F[i - 1] : null;
+          const drop = prev ? prev.count - f.count : 0;
+          funnelTip.innerHTML =
+            `<div class="font-bold text-[12px] leading-tight">${f.stage}</div>
+             <div class="text-[11px] mt-1">${f.count.toLocaleString()} leads · ${f.pct}% of awareness</div>
+             ${prev ? `<div class="text-[11px]">${f.conv}% converted from ${prev.stage}</div>
+                       <div class="text-[10.5px] opacity-70">${drop.toLocaleString()} dropped off (${100 - f.conv}%)</div>`
+                    : `<div class="text-[10.5px] opacity-70">Top of funnel — every lead starts here</div>`}`;
+          funnelTip.classList.add("show");
+        });
+        row.addEventListener("mousemove", (e) => {
+          const r = funnelEl.getBoundingClientRect();
+          let x = e.clientX - r.left + 14, y = e.clientY - r.top + 12;
+          x = Math.min(x, r.width - 172);
+          funnelTip.style.left = Math.max(0, x) + "px";
+          funnelTip.style.top = y + "px";
+        });
+        row.addEventListener("mouseleave", () => funnelTip.classList.remove("show"));
+      });
+    }
+
     // Scatter
     const scatter = document.getElementById("scatterMargin");
     if (scatter) {

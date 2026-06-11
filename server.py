@@ -135,7 +135,10 @@ def q_revenue(con):
     # count at stage = leads that reached AT LEAST that stage
     totals = [sum(rows.get(s, 0) for s in range(k, 5)) for k in range(1, 5)]
     base = totals[0] or 1
-    funnel = [{"stage": stages[i], "pct": round(totals[i] / base * 100)}
+    funnel = [{"stage": stages[i], "count": totals[i],
+               "pct": round(totals[i] / base * 100),
+               # conversion from the previous stage (100% for the first)
+               "conv": 100 if i == 0 else round(totals[i] / (totals[i - 1] or 1) * 100)}
               for i in range(4)]
 
     # Margin scatter from quotes (AI-priced vs not)

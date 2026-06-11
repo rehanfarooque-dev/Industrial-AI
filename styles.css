@@ -207,10 +207,16 @@ html, body { -webkit-font-smoothing: antialiased; }
 .op-think .tdot:nth-child(2) { animation-delay: .15s; }
 .op-think .tdot:nth-child(3) { animation-delay: .30s; }
 
-/* Funnel SVG band hover */
-.funnel-stage { transition: opacity .3s var(--ease-out); }
-.funnel:hover .funnel-stage { opacity: .55; }
-.funnel .funnel-stage:hover { opacity: 1; }
+/* Personalized Journeys funnel (SVG trapezoids) */
+.funnel-poly {
+  transform-box: fill-box; transform-origin: center;
+  animation: funnelIn .6s var(--ease-out) both;
+  transition: filter .2s var(--ease-out);
+}
+@keyframes funnelIn { from { transform: scaleX(.12); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+.funnel-seg { transition: opacity .2s var(--ease-out); }
+.funnel-seg:hover .funnel-poly { filter: brightness(1.1) drop-shadow(0 4px 10px rgba(31,78,155,.35)); }
+#funnel:hover .funnel-seg:not(:hover) { opacity: .62; }
 
 /* Generic SVG element hover */
 .lift { transition: transform .3s var(--ease-out), filter .3s var(--ease-out); }
